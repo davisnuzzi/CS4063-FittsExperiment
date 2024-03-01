@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitt's Law Experiment</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            text-align: center;
+        }
+
+        #startScreen {
+            display: block;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .square-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .square {
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            margin: 20px;
+            display: inline-block;
+            cursor: pointer;
+            border: 2px solid #2980b9;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .square:hover {
+            background-color: #2980b9;
+        }
+
+        #trialNumber {
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        #counter {
+            color: #555;
+            font-size: 20px;
+            margin-top: 15px;
+        }
+
+        #completionTime {
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        #experimentCompletionScreen {
+            color: #333;
+            font-size: 24px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="startScreen" class="screen">
+    <h2>Welcome to Fitt's Law Experiment</h2>
+    <p>Click the start button to begin the test. </p>
+    <p>For each trial, alternate clicking each square until the counter reaches 10.</p>
+    <button onclick="startExperiment()">Start</button>
+</div>
+
+<div id="experimentScreen" class="screen">
+    <h2 id="trialNumber"></h2>
+    <h2>Click Inside the Squares as Fast as You Can</h2>
+    <div class="square-container">
+        <div class="square" id="square1" onclick="recordClickTime('square1')">Square 1</div>
+        <div class="square" id="square2" onclick="recordClickTime('square2')">Square 2</div>
+    </div>
+    <div id="counter">Counter: 0</div>
+</div>
+
+<div id="completionScreen" class="screen">
+    <h2>Trial Completed</h2>
+    <div id="completionTime"></div>
+    <div id="indexOfDifficulty"></div>
+    <button is="nextTrialButton" onclick="nextTrial()">Next Trial</button>
+</div>
+
+<div id="experimentCompletionScreen" class="screen">
+    <h2>Experiment Completed</h2>
+    <div id="totalElapsedTime"></div>
+    <div id="averageTrialTime"></div>
+</div>
+
+<script>
+    let lastSquareId = null;
+    let clickCounter = 0;
+    let currentTrial = 1;
+    let startTime;
+    let totalElapsedTime = 0;
+    const totalTrials = 150;
+
+    function startExperiment() {
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('experimentScreen').style.display = 'block';
+        nextTrial();
+    }
+
+    function recordClickTime(squareId) {
+        if (!lastSquareId || squareId !== lastSquareId) {
+            clickCounter++;
+            document.getElementById('counter').innerText = `Counter: ${clickCounter}`;
+            lastSquareId = squareId;
+        }
+
+        if (clickCounter === 10) {
+            showCompletionScreen();
+        }
+    }
+
+    function nextTrial() {
+        lastSquareId = null;
+        clickCounter = 0;
+        document.getElementById('counter').innerText = `Counter: ${clickCounter}`;
+        startTime = new Date().getTime();
+        if (currentTrial <= totalTrials) {
+            document.getElementById('experimentScreen').style.display = 'block';
+            document.getElementById('completionScreen').style.display = 'none';
+            document.getElementById('trialNumber').innerText = `Trial ${currentTrial} / ${totalTrials}`;
+
+            // Calculate Index of Difficulty (ID)
+            const ID = calculateIndexofDifficulty();
+            console.log(`Index of Difficulty for Trial ${currentTrial}: ${ID.toFixed(2)}`);
+            currentTrial++;
+        } else {
+            currentTrial--;
+            showExperimentCompletionScreen();
+        }
+    }
+
+    function calculateIndexofDifficulty() {
+        // Generate random variations for width, distance, and position
+        const baseWidth = 80; // Initial base width
+        const baseDistance = 300; // Initial base distance
+        const widthVariation = Math.floor(Math.random() * (20 + 1)) - 10; // Random width variation between -10 and 10 pixels
+        const distanceVariation = Math.floor(Math.random() * (50 + 1)) - 25; // Random distance variation between -25 and 25 pixels
+        const positionVariationX = Math.floor(Math.random() * (20 + 1)) - 10; // Random X position variation between -10 and 10 pixels
+        const positionVariationY = Math.floor(Math.random() * (20 + 1)) - 10; // Random Y position variation between -10 and 10 pixels
+
+        // Calculate modified width, distance, and positions
+        const width = baseWidth + widthVariation;
+        const distance = baseDistance + distanceVariation;
+        const positionX = 50 + positionVariationX; // Base X position is set to 50 (center)
+        const positionY = 50 + positionVariationY; // Base Y position is set to 50 (center)
+
+        // Apply variations to squares
+        document.getElementById('square1').style.width = `${width}px`;
+        document.getElementById('square2').style.width = `${width}px`;
+        document.getElementById('square1').style.marginLeft = `${positionX}px`;
+        document.getElementById('square2').style.marginLeft = `${positionX + distance}px`;
+        document.getElementById('square1').style.marginTop = `${positionY}px`;
+        document.getElementById('square2').style.marginTop = `${positionY}px`;
+
+        // Calculate Index of Difficulty (ID)
+        const ID = Math.log2((2 * distance) / width + 1);
+
+        // Update the display or log the values as needed
+        console.log(`Width: ${width}px, Distance: ${distance}px, Position X: ${positionX}px, Position Y: ${positionY}px`);
+
+        return ID;
+    }
+
+    function showCompletionScreen() {
+        const endTime = new Date().getTime();
+        const completionTimeInSeconds = (endTime - startTime) / 1000;
+        totalElapsedTime += completionTimeInSeconds;
+        document.getElementById('experimentScreen').style.display = 'none';
+        document.getElementById('completionScreen').style.display = 'block';
+        document.getElementById('completionTime').innerText = `Completion Time: ${completionTimeInSeconds.toFixed(2)} seconds`;
+    }
+
+    function showExperimentCompletionScreen() {
+        document.getElementById('completionScreen').style.display = 'none';
+        document.getElementById('experimentCompletionScreen').style.display = 'block';
+        document.getElementById('totalElapsedTime').innerText = `Total Elapsed Time: ${totalElapsedTime.toFixed(2)} seconds`;
+        const averageTrialTime = totalElapsedTime / totalTrials;
+        document.getElementById('averageTrialTime').innerText = `Average Trial Time: ${averageTrialTime.toFixed(2)} seconds`;
+    }
+</script>
+
+</body>
+</html>
